@@ -63,7 +63,6 @@ if ["%1"] == ["--config"] (
 	shift
 )
 
-echo %*
 set option=%1
 shift
 set command=%1
