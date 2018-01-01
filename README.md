@@ -2,6 +2,9 @@ Batch scripts for running Apache Spark on Microsoft Windows
 
 These files are not unofficial(only for my private interest),
 so please understand that maybe codes are little dizzy and not cleaned.
+You can use and modify it for your own but
+please do not commit to official Apache Spark repository
+because these scripts are not assured to work fine.
 
 Tested essential and simple cases on:
 Microsoft Windows 10 Pro 64bit
