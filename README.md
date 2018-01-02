@@ -26,4 +26,4 @@ to make the daemon running in background mode, but I don't recommend that.
 Maybe you need to add(or modify) the environment file "spark-env.cmd" on conf folder and
 environment-loading file "load-spark-env.cmd" on bin folder.
 
-Currently rsync-binding operation is not supported.
+Currently rsync-binded operation is not supported.
