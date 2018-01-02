@@ -146,7 +146,7 @@ if ["!option!"] == ["status"] (
 			exit /b 1
 		)
 	) else (
-		echo %command% not running.
+		echo !command! not running.
 		exit /b 2
 	)
 )
@@ -162,9 +162,6 @@ rem designed endpoint of batch script area
 
 	if exist [%pid%] (
 		set /p TARGET_ID=<%pid%
-		
-		echo %TARGET_ID%
-		
 		for /f "tokens=1 delims=, usebackq" %%n in (`tasklist /fi "PID eq !TARGET_ID!" /fo csv`) do set pname=%%n
 		if ["!pname!"] == ["java.exe"] (
 			echo %command% running as process !TARGET_ID!.  Stop it first.
@@ -172,13 +169,19 @@ rem designed endpoint of batch script area
 		)
 	)
 
+	rem 1) This part(rsync) is not implemented for now.
+	rem    I don't have idea this can be implemented without any external components.
+	rem
 	rem if [ "$SPARK_MASTER" != "" ]; then
 	rem  echo rsync from "$SPARK_MASTER"
 	rem  rsync -a -e ssh --delete --exclude=.svn --exclude='logs/*' --exclude='contrib/hod/logs/*' "$SPARK_MASTER/" "${SPARK_HOME}"
 	rem fi
 
-	call :spark_rotate_log %log%
-	echo starting %command%, logging to %log%
+	rem 2) Currently logging with using this script is disabled temporally
+	rem	   because daemon processes are not intended to open in background.
+	rem 
+	rem call :spark_rotate_log %log%
+	rem echo starting %command%, logging to %log%
 
 	rem normalize SPARK_NICENESS for Windows
 	set /a NICENESS_CAST=(19+(-%SPARK_NICENESS%))*6
