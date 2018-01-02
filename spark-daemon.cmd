@@ -224,7 +224,8 @@ rem end of 'run_command' function area
 		exit /b %errorlevel%
 	)
 	rem if [ -z ${SPARK_NO_DAEMONIZE+set} ]
-	start "Apache Spark Distribution - %1 %2" /%PROCESS_PRIORITY% %* >> %log% 2>&1 < NUL
+	rem start "Apache Spark Distribution - %1 %2" /%PROCESS_PRIORITY% %* >> %log% 2>&1 < NUL
+	start "Apache Spark Distribution - %1 %2" /%PROCESS_PRIORITY% %*
 	for /f "skip=1 tokens=2 delims=, usebackq" %%p in (`tasklist /fo csv /fi "WINDOWTITLE eq Apache Spark Distribution - %1 %2" /fi "CPUTIME le 00:00:01"`) do set newpid=%%~p
 	rem timeout /t 1 /nobreak > NUL
 	rem for /f "skip=1 tokens=2 delims=, usebackq" %%p in (`tasklist /fo csv /fi "IMAGENAME eq java.exe" /fi "CPUTIME le 00:00:01"`) do set newpid=%%~p
