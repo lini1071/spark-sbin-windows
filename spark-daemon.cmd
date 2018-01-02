@@ -178,7 +178,7 @@ rem designed endpoint of batch script area
 	rem fi
 
 	rem 2) Currently logging with using this script is disabled temporally
-	rem	   because daemon processes are not intended to open in background.
+	rem	   because daemon processes are not intended to be opened in background.
 	rem 
 	rem call :spark_rotate_log %log%
 	rem echo starting %command%, logging to %log%
