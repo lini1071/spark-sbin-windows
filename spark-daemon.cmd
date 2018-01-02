@@ -43,7 +43,7 @@ if [%SPARK_HOME%] == [] (
   set SPARK_HOME=%~dp0..
 )
 
-call %SPARK_HOME%\sbin\spark-config.cmd
+call !SPARK_HOME!\sbin\spark-config.cmd
 
 rem get arguments
 
@@ -53,12 +53,12 @@ rem Exit if the argument is not a directory.
 if ["%1"] == ["--config"] (
 	shift
 	set conf_dir=%1
-	if not exist %conf_dir%\* (
-		echo ERROR : %conf_dir% is not a directory
+	if not exist !conf_dir!\NUL (
+		echo ERROR : !conf_dir! is not a directory
 		for /f "tokens=* delims= " %%p in (%usage%) do echo %%~p
 		exit /b 1
 	) else (
-		set SPARK_CONF_DIR=%conf_dir%
+		set SPARK_CONF_DIR=!conf_dir!
 	)
 	shift
 )
@@ -70,7 +70,7 @@ shift
 set instance=%1
 shift
 
-call %SPARK_HOME%\bin\load-spark-env.cmd
+call !SPARK_HOME!\bin\load-spark-env.cmd
 
 if ["%SPARK_IDENT_STRING%"] == [""] (
 	set SPARK_IDENT_STRING=%USERNAME%
@@ -88,7 +88,7 @@ set SPARK_LOG_DIR=!SPARK_LOG_DIR:/=\!
 if not exist !SPARK_LOG_DIR!\NUL mkdir !SPARK_LOG_DIR!
 copy /b !SPARK_LOG_DIR!\.spark_test +,, > NUL 2>&1
 set TEST_LOG_DIR=%ERRORLEVEL%
-if [%TEST_LOG_DIR%] == [0] (
+if [!TEST_LOG_DIR!] == [0] (
 	del /f !SPARK_LOG_DIR!\.spark_test
 ) else (
 	rem chown %SPARK_IDENT_STRING% %SPARK_LOG_DIR%
@@ -102,8 +102,8 @@ set SPARK_PID_DIR=!SPARK_PID_DIR:/=\!
 rem for /f "tokens=* delims= " %i in ('%%') do set SPARK_PID_DIR=%i
 
 rem some variables
-set log=!SPARK_LOG_DIR!\spark-%SPARK_IDENT_STRING%-%command%-%instance%-%COMPUTERNAME%.out
-set pid=!SPARK_PID_DIR!\spark-%SPARK_IDENT_STRING%-%command%-%instance%.pid
+set log=!SPARK_LOG_DIR!\spark-!SPARK_IDENT_STRING!-%command%-%instance%-%COMPUTERNAME%.out
+set pid=!SPARK_PID_DIR!\spark-!SPARK_IDENT_STRING!-%command%-%instance%.pid
 
 rem Set default scheduling priority
 if [%SPARK_NICENESS%] == [] (
@@ -111,38 +111,38 @@ if [%SPARK_NICENESS%] == [] (
 )
 
 rem previously executed shift count : 3
-if ["%option%"] == ["submit"] (
+if ["!option!"] == ["submit"] (
 	for /f "tokens=4* delims= " %%p in ("%*") do call :run_command submit %%p %%q
 	exit /b %errorlevel%
 )
-if ["%option%"] == ["start"] (
+if ["!option!"] == ["start"] (
 	for /f "tokens=4* delims= " %%p in ("%*") do call :run_command class %%p %%q
 	exit /b %errorlevel%
 )
-if ["%option%"] == ["stop"] (
+if ["!option!"] == ["stop"] (
 	if exist %pid% (
 		set /p TARGET_ID=< %pid%
 		for /f "skip=1 tokens=2 delims=, usebackq" %%n in (`tasklist /fi "PID eq !TARGET_ID!" /fo csv`) do set pname=%%~n
-		if ["%pname%"] == ["java.exe"] (
-			echo stopping %command%
+		if ["!pname!"] == ["java.exe"] (
+			echo stopping !command!
 			taskkill /pid !TARGET_ID! && del /f %pid%
 		) else (
-			echo no %command% to stop
+			echo no !command! to stop
 		)
 	) else (
-		echo no %command% to stop
+		echo no !command! to stop
 	)
 	exit /b %errorlevel%
 )
-if ["%option%"] == ["status"] (
+if ["!option!"] == ["status"] (
     if exist %pid% (
 		set /p TARGET_ID=< %pid%
 		for /f "skip=1 tokens=2 delims=, usebackq" %%n in (`tasklist /fi "PID eq !TARGET_ID!" /fo csv`) do set pname=%%~n
-		if ["%pname%"] == ["java.exe"]
-			echo %command% is running.
+		if ["!pname!"] == ["java.exe"]
+			echo !command! is running.
 			exit /b 0
 		) else (
-			echo %pid% file is present but %command% not running
+			echo %pid% file is present but !command! not running
 			exit /b 1
 		)
 	) else (
@@ -150,7 +150,7 @@ if ["%option%"] == ["status"] (
 		exit /b 2
 	)
 )
-for /f "tokens=* delims= " %%p in (%usage%) do echo %%~p
+for /f "tokens=* delims= " %%p in (!usage!) do echo %%~p
 exit /b 1
 rem designed endpoint of batch script area
 
@@ -158,15 +158,15 @@ rem designed endpoint of batch script area
 	set mode=%1
 	shift
 
-	if not exist !SPARK_PID_DIR!\NUL mkdir !SPARK_PID_DIR!
+	if not exist %SPARK_PID_DIR%\NUL mkdir %SPARK_PID_DIR%
 
 	if exist [%pid%] (
 		set /p TARGET_ID=<%pid%
 		
-		echo !TARGET_ID!
+		echo %TARGET_ID%
 		
 		for /f "tokens=1 delims=, usebackq" %%n in (`tasklist /fi "PID eq !TARGET_ID!" /fo csv`) do set pname=%%n
-		if ["%pname%"] == ["java.exe"] (
+		if ["!pname!"] == ["java.exe"] (
 			echo %command% running as process !TARGET_ID!.  Stop it first.
 			exit /b 1
 		)
@@ -182,22 +182,22 @@ rem designed endpoint of batch script area
 
 	rem normalize SPARK_NICENESS for Windows
 	set /a NICENESS_CAST=(19+(-%SPARK_NICENESS%))*6
-	if %NICENESS_CAST% lss 40 (
+	if !NICENESS_CAST! lss 40 (
 		set PROCESS_PRIORITY=LOW
 	)
-	if %NICENESS_CAST% geq 40 if %NICENESS_CAST% lss 80 (
+	if !NICENESS_CAST! geq 40 if !NICENESS_CAST! lss 80 (
 		set PROCESS_PRIORITY=BELOWNORMAL
 	)
-	if %NICENESS_CAST% geq 80 if %NICENESS_CAST% lss 120 (
+	if !NICENESS_CAST! geq 80 if !NICENESS_CAST! lss 120 (
 		set PROCESS_PRIORITY=NORMAL
 	)
-	if %NICENESS_CAST% geq 120 if %NICENESS_CAST% lss 160 (
+	if !NICENESS_CAST! geq 120 if !NICENESS_CAST! lss 160 (
 		set PROCESS_PRIORITY=ABOVENORMAL
 	)
-	if %NICENESS_CAST% geq 160 if %NICENESS_CAST% lss 200 (
+	if !NICENESS_CAST! geq 160 if !NICENESS_CAST! lss 200 (
 		set PROCESS_PRIORITY=HIGH
 	)
-	if %NICENESS_CAST% geq 200 if %NICENESS_CAST% lss 240 (
+	if !NICENESS_CAST! geq 200 if !NICENESS_CAST! lss 240 (
 		set PROCESS_PRIORITY=REALTIME
 	)
 	
@@ -222,7 +222,7 @@ rem end of 'run_command' function area
 	)
 	rem if [ -z ${SPARK_NO_DAEMONIZE+set} ]
 	start "Apache Spark Distribution - %1 %2" /%PROCESS_PRIORITY% %* >> %log% 2>&1 < NUL
-	for /f "skip=1 tokens=2 delims=, usebackq" %%p in (`tasklist /fo csv /fi "WINDOWTITLE eq Apache Spark Distribution" /fi "CPUTIME le 00:00:01"`) do set newpid=%%~p
+	for /f "skip=1 tokens=2 delims=, usebackq" %%p in (`tasklist /fo csv /fi "WINDOWTITLE eq Apache Spark Distribution - %1 %2" /fi "CPUTIME le 00:00:01"`) do set newpid=%%~p
 	rem timeout /t 1 /nobreak > NUL
 	rem for /f "skip=1 tokens=2 delims=, usebackq" %%p in (`tasklist /fo csv /fi "IMAGENAME eq java.exe" /fi "CPUTIME le 00:00:01"`) do set newpid=%%~p
 
@@ -234,7 +234,7 @@ rem end of 'run_command' function area
 	set /a idx=!idx!+1
 	if !idx! leq 5 (
 		for /f "skip=1 tokens=1 delims=, usebackq" %%n in (`tasklist /fi "PID eq !newpid!" /fo csv`) do set pname=%%~n
-		if ["%pname%"] == ["java.exe"] goto :execute_command_next
+		if ["!pname!"] == ["java.exe"] goto :execute_command_next
 		timeout /t 1 /nobreak > NUL
 		goto :execute_command_wait
 	)
@@ -243,7 +243,7 @@ rem end of 'run_command' function area
 	timeout /t 2 /nobreak > NUL
 	rem Check if the process has died; in that case we'll tail the log so the user can see
 	for /f "skip=1 tokens=1 delims=, usebackq" %%n in (`tasklist /fi "PID eq !newpid!" /fo csv`) do set pname=%%~n
-	if not ["%pname%"] == ["java.exe"] (
+	if not ["!pname!"] == ["java.exe"] (
 		echo failed to launch: %*
 		rem tail -2 "$log" | sed 's/^/  /'
 		for /f "tokens=3 delims= usebackq" %%i in (`find /c /v "" %log%`) do set /a lines=%%i-2
@@ -260,16 +260,15 @@ rem end of 'execute_command' function area
 	set num=5
 	if not ["%2"] == [""] (
 		set "var="&for /f "delims=0123456789" %%i in ("%2") do set var=%%i
-		if defined var set num=%var%
+		if defined var set num=!var!
 	)
-	if exist %log% (
+	if exist !log! (
 		rem rotate logs
 		if !num! gtr 1 for /l %%i in (!num!,-1,2) do (
 			set /a prev=%%i-1
-			if exist %log%.!prev! rename "%log%.!prev!" "%log_no%.%%i"
+			if exist !log!.!prev! rename "!log!.!prev!" "!log_no!.%%i"
 			rem set /a num=%i
 		)
-		rename "%log%" "%log_no%.1"
+		rename "!log!" "!log_no!.1"
 	)
-	goto :eof
 rem end of 'spark_rotate_log' function area
