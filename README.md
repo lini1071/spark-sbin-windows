@@ -1,9 +1,10 @@
 Batch scripts for running Apache Spark on Microsoft Windows
 
-These files are "not official"(only for my personal interest),
-so please understand that maybe codes are little dizzy and not cleaned.
-You can use and modify it for your own but
-please do not commit these files to official Apache Spark repository
+Please understand that maybe codes are little dizzy and not cleaned.
+These files are "not official"(only for my personal interest) and
+just converted copies of original bash scripts on official Apache Spark repository.
+You can use and modify it for your own
+but please do not commit these files to official repository
 unless you're a regular contributor on the repository
 because these scripts are not assured to work fine.
 
