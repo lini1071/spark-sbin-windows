@@ -1,5 +1,4 @@
 @echo off
-
 rem
 rem Licensed to the Apache Software Foundation (ASF) under one or more
 rem contributor license agreements.  See the NOTICE file distributed with
@@ -39,6 +38,7 @@ if ["%SPARK_HOME%"] == [""] (
 rem NOTE: This exact class name is matched downstream by SparkSubmit.
 rem Any changes need to be reflected there.
 set CLASS=org.apache.spark.deploy.worker.Worker
+for /f "tokens=1* delims= " %%p in ("%*") do set ARGS_SLAVE=%%q
 
 if ["%*"] == [""] set show_usage=1
 if ["%*"] == ["*--help"] set show_usage=1
@@ -48,7 +48,7 @@ if defined !show_usage! (
 	set pattern="Usage:"
 	set pattern+="\|Using Spark's default log4j profile:"
 	set pattern+="\|Registered signal handlers for"
-
+	
 	rem call %SPARK_HOME%\bin\spark-class.cmd %CLASS% --help 2>&1 | findstr /v !pattern! 1>&2
 	exit /b 1
 )
@@ -67,11 +67,11 @@ if ["%SPARK_WORKER_WEBUI_PORT%"] == [""] (
 	set SPARK_WORKER_WEBUI_PORT=8081
 )
 
-for /f "tokens=2* delims= " %%p in ("%*") do set ARGS=%%p
+rem for /f "tokens=2* delims= " %%p in ("%*") do set ARGS_SLAVE=%%p
 if not defined !SPARK_WORKER_INSTANCES! (
-	call :start_instance 1 !ARGS!
+	call :start_instance 1 !ARGS_SLAVE!
 ) else (
-	for /l %%i in (1,1,!SPARK_WORKER_INSTANCES!) do call :start_instance %%i !ARGS!
+	for /l %%i in (1,1,!SPARK_WORKER_INSTANCES!) do call :start_instance %%i !ARGS_SLAVE!
 )
 endlocal
 goto :eof
@@ -91,6 +91,6 @@ rem quick local function to start a worker
 	)
 	set /a WEBUI_PORT=%SPARK_WORKER_WEBUI_PORT% + %WORKER_NUM% - 1
 
-	for /f "tokens=2* delims= " %%p in ("%*") do set INSTANCE_ARGS=%%p
-	call %SPARK_HOME%\sbin\spark-daemon.cmd start %CLASS% !WORKER_NUM! --webui-port !WEBUI_PORT! !PORT_FLAG! !PORT_NUM! %MASTER% !INSTANCE_ARGS!
+	for /f "tokens=1* delims= " %%p in ("%*") do set ARGS_INSTANCE=%%q
+	call %SPARK_HOME%\sbin\spark-daemon.cmd start %CLASS% !WORKER_NUM! --webui-port !WEBUI_PORT! !PORT_FLAG! !PORT_NUM! %MASTER% !ARGS_INSTANCE!
 rem end of 'start_instance' function area
