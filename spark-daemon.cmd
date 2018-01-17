@@ -112,11 +112,11 @@ if [%SPARK_NICENESS%] == [] (
 
 rem previously executed shift count : 3
 if ["!option!"] == ["submit"] (
-	for /f "tokens=4* delims= " %%p in ("%*") do call :run_command submit %%p %%q
+	for /f "tokens=3* delims= " %%p in ("%*") do call :run_command submit %%q
 	exit /b %errorlevel%
 )
 if ["!option!"] == ["start"] (
-	for /f "tokens=4* delims= " %%p in ("%*") do call :run_command class %%p %%q
+	for /f "tokens=3* delims= " %%p in ("%*") do call :run_command class %%q
 	exit /b %errorlevel%
 )
 if ["!option!"] == ["stop"] (
@@ -206,11 +206,11 @@ rem designed endpoint of batch script area
 	
 	rem shift count in this label : 1
 	if ["%mode%"] == ["class"] (
-		for /f "tokens=2* delims= " %%p in ("%*") do call :execute_command %SPARK_HOME%\bin\spark-class.cmd %command% %%p %%q
+		for /f "tokens=1* delims= " %%p in ("%*") do call :execute_command %SPARK_HOME%\bin\spark-class.cmd %command% %%q
 		exit /b %errorlevel%
 	)
 	if ["%mode%"] == ["submit"] (
-		for /f "tokens=2* delims= " %%p in ("%*") do call :execute_command %SPARK_HOME%\bin\spark-submit.cmd --class %command% %%p %%q
+		for /f "tokens=1* delims= " %%p in ("%*") do call :execute_command %SPARK_HOME%\bin\spark-submit.cmd --class %command% %%q
 		exit /b %errorlevel%
 	)
 	
